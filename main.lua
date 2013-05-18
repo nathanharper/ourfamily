@@ -1,4 +1,4 @@
--- TODO: better separation of data and logic.
+-- TODO: better separation of data and logic, and generalize load an draw functions for ragdolls
 -- local MODE = "static"
 local MODE = "dynamic"
 local nathan={}
@@ -52,6 +52,13 @@ local function create_bounceable(img_path, click_paths, release_paths, x, y, res
       release = release_sounds
     }
   }
+
+  if #click_sounds > 0 and #release_sounds > 0 then
+    data_table.sounds = {
+      click = click_sounds,
+      release = release_sounds
+    }
+  end
   fixture:setUserData(data_table)
   bounceables[#bounceables+1] = fixture -- fixture is all we need to store to retrieve other data
 end
@@ -96,14 +103,14 @@ local function load_nathan()
   nathan.images = {}
   nathan.images.head = love.graphics.newImage "assets/nhead.png"
   nathan.images.body = love.graphics.newImage "assets/nbody.png"
-  nathan.images.leg = love.graphics.newImage "assets/nleg.png"
-  nathan.images.arm = love.graphics.newImage "assets/narm.png"
+  nathan.images.leg  = love.graphics.newImage "assets/nleg.png"
+  nathan.images.arm  = love.graphics.newImage "assets/narm.png"
 
   nathan.head = {}
     nathan.head.body = love.physics.newBody(world, 650/2, 650/2, MODE)
-    nathan.head.shape = love.physics.newCircleShape(36) --the ball's shape has a radius of 20
+    nathan.head.shape = love.physics.newCircleShape(36)
     nathan.head.fixture = love.physics.newFixture(nathan.head.body, nathan.head.shape, 1)
-    nathan.head.fixture:setRestitution(0.9) --let the ball bounce
+    nathan.head.fixture:setRestitution(0.9)
     nathan.head.fixture:setUserData(cpy(clickable))
 
   nathan.bod = {}
@@ -147,6 +154,123 @@ local function load_nathan()
     nathan.lleg.fixture:setRestitution(0.9)
     nathan.lleg.fixture:setUserData(cpy(clickable))
   love.physics.newRevoluteJoint(nathan.bod.body, nathan.lleg.body, 650/2+20+xo, 650/2+145+yo, false)
+end
+
+local function load_chelsea()
+  chelsea = {}
+  chelsea.sounds = {}
+  chelsea.sounds.click = {}
+  chelsea.sounds.release = {}
+  chelsea.sounds.click[1] = love.audio.newSource("assets/uuh.wav", "static")
+  chelsea.sounds.release[1] = love.audio.newSource("assets/lalala.wav", "static")
+
+  local clickable = { -- user data table for all clickable objects
+    clickable = true,
+    sounds = chelsea.sounds
+  }
+
+  chelsea.images = {}
+  chelsea.images.head = love.graphics.newImage "assets/chead.png"
+  chelsea.images.body = love.graphics.newImage "assets/cbody.png"
+  chelsea.images.leg  = love.graphics.newImage "assets/cleg.png"
+  chelsea.images.arm  = love.graphics.newImage "assets/carm.png"
+
+  chelsea.head = {}
+    chelsea.head.body = love.physics.newBody(world, 200, 200, MODE)
+    chelsea.head.shape = love.physics.newCircleShape(36)
+    chelsea.head.fixture = love.physics.newFixture(chelsea.head.body, chelsea.head.shape, 1)
+    chelsea.head.fixture:setRestitution(0.9)
+    chelsea.head.fixture:setUserData(cpy(clickable))
+
+  chelsea.bod = {}
+    chelsea.bod.body = love.physics.newBody(world, 200, 200+40+70, MODE)
+    chelsea.bod.shape = love.physics.newRectangleShape(0,0, 60, 140)
+    chelsea.bod.fixture = love.physics.newFixture(chelsea.bod.body, chelsea.bod.shape, 1)
+    chelsea.bod.fixture:setRestitution(0.9)
+    chelsea.bod.fixture:setUserData(cpy(clickable))
+  love.physics.newRevoluteJoint(chelsea.head.body, chelsea.bod.body, 200, 200+40, true)
+
+  chelsea.rarm = {}
+    chelsea.rarm.body = love.physics.newBody(world, 200+30+35, 200+40+30, MODE)
+    chelsea.rarm.shape = love.physics.newRectangleShape(0,0, 70, 20)
+    chelsea.rarm.fixture = love.physics.newFixture(chelsea.rarm.body, chelsea.rarm.shape, 1)
+    chelsea.rarm.fixture:setRestitution(0.9)
+    chelsea.rarm.fixture:setUserData(cpy(clickable))
+  love.physics.newRevoluteJoint(chelsea.bod.body, chelsea.rarm.body, 200+30, 200+40+30, false)
+
+  chelsea.larm = {}
+    chelsea.larm.body = love.physics.newBody(world, 200-65, 200+40+30, MODE)
+    chelsea.larm.shape = love.physics.newRectangleShape(0,0, 70, 20)
+    chelsea.larm.fixture = love.physics.newFixture(chelsea.larm.body, chelsea.larm.shape, 1)
+    chelsea.larm.fixture:setRestitution(0.9)
+    chelsea.larm.fixture:setUserData(cpy(clickable))
+  love.physics.newRevoluteJoint(chelsea.bod.body, chelsea.larm.body, 200-30, 200+40+30, false)
+
+  local xo = 15
+  local yo = 40
+  chelsea.rleg = {}
+    chelsea.rleg.body = love.physics.newBody(world, 200-xo, 200+180+yo, MODE)
+    chelsea.rleg.shape = love.physics.newRectangleShape(0,0, 20, 70)
+    chelsea.rleg.fixture = love.physics.newFixture(chelsea.rleg.body, chelsea.rleg.shape, 1)
+    chelsea.rleg.fixture:setRestitution(0.9)
+    chelsea.rleg.fixture:setUserData(cpy(clickable))
+  love.physics.newRevoluteJoint(chelsea.bod.body, chelsea.rleg.body, 200-xo, 200+145+yo, false)
+
+  chelsea.lleg = {}
+    chelsea.lleg.body = love.physics.newBody(world, 200+xo, 200+180+yo, MODE)
+    chelsea.lleg.shape = love.physics.newRectangleShape(0,0, 20, 70)
+    chelsea.lleg.fixture = love.physics.newFixture(chelsea.lleg.body, chelsea.lleg.shape, 1)
+    chelsea.lleg.fixture:setRestitution(0.9)
+    chelsea.lleg.fixture:setUserData(cpy(clickable))
+  love.physics.newRevoluteJoint(chelsea.bod.body, chelsea.lleg.body, 200+xo, 200+145+yo, false)
+end
+
+local function draw_chelsea()
+  -- local origin_offset = chelsea.head.shape:getRadius()
+  love.graphics.draw(chelsea.images.head, 
+                     chelsea.head.body:getX(), 
+                     chelsea.head.body:getY(), 
+                     chelsea.head.body:getAngle(),
+                     1, 1, -- scale factor
+                     chelsea.images.head:getWidth()/2,
+                     chelsea.images.head:getHeight()/2)
+  love.graphics.draw(chelsea.images.body,
+                     chelsea.bod.body:getX(), 
+                     chelsea.bod.body:getY(), 
+                     chelsea.bod.body:getAngle(),
+                     1, 1, -- scale factor
+                     chelsea.images.body:getWidth()/2,
+                     chelsea.images.body:getHeight()/2)
+
+  local half_arm_width = chelsea.images.arm:getWidth()/2
+  local half_arm_height = chelsea.images.arm:getHeight()/2
+  love.graphics.draw(chelsea.images.arm,
+                     chelsea.larm.body:getX(), 
+                     chelsea.larm.body:getY(), 
+                     chelsea.larm.body:getAngle(),
+                     -1, 1, -- scale factor
+                     half_arm_width, half_arm_height)
+  love.graphics.draw(chelsea.images.arm,
+                     chelsea.rarm.body:getX(), 
+                     chelsea.rarm.body:getY(), 
+                     chelsea.rarm.body:getAngle(),
+                     1, 1, -- scale factor
+                     half_arm_width, half_arm_height)
+
+  local half_leg_width = chelsea.images.leg:getWidth()/2
+  local half_leg_height = chelsea.images.leg:getHeight()/2
+  love.graphics.draw(chelsea.images.leg,
+                     chelsea.lleg.body:getX(), 
+                     chelsea.lleg.body:getY(), 
+                     chelsea.lleg.body:getAngle(),
+                     1, 1, -- scale factor
+                     half_leg_width, half_leg_height)
+  love.graphics.draw(chelsea.images.leg,
+                     chelsea.rleg.body:getX(), 
+                     chelsea.rleg.body:getY(), 
+                     chelsea.rleg.body:getAngle(),
+                     1, 1, -- scale factor
+                     half_leg_width, half_leg_height)
 end
 
 local function draw_nathan()
@@ -205,6 +329,7 @@ function love.load()
   mouse_collisions = {}
 
   load_nathan()
+  load_chelsea()
   load_bounceables()
 
   objects = {} -- table to hold all our physical objects
@@ -229,15 +354,15 @@ function love.load()
     objects.rwall.fixture = love.physics.newFixture(objects.rwall.body, objects.rwall.shape);
 
   --let's create a couple blocks to play around with
-  objects.block1 = {}
-    objects.block1.body = love.physics.newBody(world, 200, 550, "dynamic")
-    objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-    objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape, 5)
+  -- objects.block1 = {}
+  --   objects.block1.body = love.physics.newBody(world, 200, 550, "dynamic")
+  --   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
+  --   objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape, 5)
 
-  objects.block2 = {}
-    objects.block2.body = love.physics.newBody(world, 200, 400, "dynamic")
-    objects.block2.shape = love.physics.newRectangleShape(0, 0, 100, 50)
-    objects.block2.fixture = love.physics.newFixture(objects.block2.body, objects.block2.shape, 2)
+  -- objects.block2 = {}
+  --   objects.block2.body = love.physics.newBody(world, 200, 400, "dynamic")
+  --   objects.block2.shape = love.physics.newRectangleShape(0, 0, 100, 50)
+  --   objects.block2.fixture = love.physics.newFixture(objects.block2.body, objects.block2.shape, 2)
 
   objects.mouse = {}
     objects.mouse.body = love.physics.newBody(world, 0, 0, "kinematic")
@@ -334,9 +459,10 @@ function love.draw()
   love.graphics.polygon("fill", objects.ceil.body:getWorldPoints(objects.ceil.shape:getPoints()))
 
   draw_nathan()
+  draw_chelsea()
   draw_bounceables()
 
-  love.graphics.setColor(50, 50, 50) -- set the drawing color to grey for the blocks
-  love.graphics.polygon("fill", objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
-  love.graphics.polygon("fill", objects.block2.body:getWorldPoints(objects.block2.shape:getPoints()))
+  -- love.graphics.setColor(50, 50, 50) -- set the drawing color to grey for the blocks
+  -- love.graphics.polygon("fill", objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+  -- love.graphics.polygon("fill", objects.block2.body:getWorldPoints(objects.block2.shape:getPoints()))
 end
