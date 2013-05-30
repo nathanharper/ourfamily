@@ -46,11 +46,7 @@ local function create_bounceable(img_path, click_paths, release_paths, x, y, res
 
   local data_table = {
     clickable = true,
-    image = image,
-    sounds = {
-      click = click_sounds,
-      release = release_sounds
-    }
+    image = image
   }
 
   if #click_sounds > 0 and #release_sounds > 0 then
@@ -66,6 +62,7 @@ end
 local function load_bounceables()
   create_bounceable("sansa.png", {"brup.wav"}, {"breeow.wav"}, 400, 400, 1.2)
   create_bounceable("ernie.png", {"hiss.wav"}, {"rasp.wav"}, 60, 60)
+  create_bounceable("coffee.png", {}, {}, 60, 60)
 end
 
 local function draw_bounceables()
